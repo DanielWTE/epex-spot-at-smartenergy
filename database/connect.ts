@@ -6,12 +6,6 @@ dotenv.config();
 
 const mongodb_url = process.env.MONGODB_URL as string;
 
-if (!mongodb_url) {
-  throw new Error(
-    "Please define the MONGODB_URL environment variable inside .env",
-  );
-}
-
 export default async function connectDB() {
   try {
     await mongoose.connect(mongodb_url, {
