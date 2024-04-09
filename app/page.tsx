@@ -5,7 +5,7 @@ import { timeframes } from "@/config/timeframes";
 import { useGetData } from "@/hooks/data/getData";
 import TimeframeSelection from "@/components/timeframe";
 import { EnergyPriceChart, EnergyPriceChartSkeleton } from "@/components/charts/energyPriceChart";
-import ZoneVisual from "@/components/zoneVisualization";
+import { ZoneVisual, ZoneVisualSkeleton } from "@/components/zoneVisualization";
 
 export default function Main() {
   const [timeframe, setTimeframe] = useState(timeframes[1].value);
@@ -16,7 +16,7 @@ export default function Main() {
   });
 
   const [energyData, setEnergyData] = useState([]);
-  const [clarifications, setClarifications] = useState({ low: [], mid: [], high: [] });
+  const [clarifications, setClarifications] = useState([]);
 
   useEffect(() => {
     if (getDataResult) {
@@ -45,7 +45,7 @@ export default function Main() {
             <hr className="mt-4" />
             <div className="mx-auto max-w-7xl sm:px-6 lg:px-8">
               <div className="grid grid-cols-1 gap-4 mt-4">
-                <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="bg-white overflow-hidden shadow rounded-lg p-4">
                   <h1 className="text-xl font-bold text-center p-4">Energy Prices Over Time</h1>
                   {getDataLoading && energyData.length === 0 ? (
                     <EnergyPriceChartSkeleton />
@@ -53,9 +53,13 @@ export default function Main() {
                     <EnergyPriceChart data={energyData} />
                   )}
                 </div>
-                <div className="bg-white overflow-hidden shadow rounded-lg">
+                <div className="bg-white overflow-hidden shadow rounded-lg p-4">
                   <h1 className="text-xl font-bold text-center p-4">Zone Clarifications</h1>
-                  <ZoneVisual dataClarification={clarifications} />
+                  {getDataLoading && clarifications.length === 0 ? (
+                    <ZoneVisualSkeleton />
+                  ) : (
+                    <ZoneVisual dataClarification={clarifications} timeFrame={timeframe} />
+                  )}
                 </div>
               </div>
             </div>

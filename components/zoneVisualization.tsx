@@ -1,6 +1,16 @@
 import React from 'react';
 
-const ZoneVisual: React.FC<{ dataClarification: any }> = ({ dataClarification }) => {
+export const ZoneVisual: React.FC<{ dataClarification: any, timeFrame: string }> = ({ dataClarification, timeFrame }) => {
+
+    if (!dataClarification) {
+        return <div className="text-center text-gray-500">No data available</div>;
+    }
+
+    const availableTimeframes = ['tommorow', 'today', 'yesterday'];
+
+    if (!availableTimeframes.includes(timeFrame)) {
+        return <div className="text-center text-gray-500">Zone Clarifications are only available for today, yesterday and tommorow</div>;
+    }
 
     const allClarifications = [] as any;
 
@@ -51,9 +61,9 @@ const ZoneVisual: React.FC<{ dataClarification: any }> = ({ dataClarification })
 
         return (
             <div key={index} className="flex flex-col items-center">
-                <div key={index} className={`p-4 ${gradient} text-white text-center mx-1 my-2 shadow-lg rounded-lg border border-gray-200 hover:border-gray-400 transition-all duration-300 ease-in-out cursor-pointer`}
+                <div key={index} className={`p-4 ${gradient} text-white text-center mx-3 my-2 shadow-lg rounded-lg border border-gray-200 hover:border-gray-400 transition-all duration-300 ease-in-out cursor-pointer`}
                     title={`Time: ${clarification.date}`}>
-                    {(clarification.date.split('T')[1]).split('.')[0]}
+                    {(clarification.date.split('T')[1].split('.')[0]).split(':')[0]}:00
                 </div>
                 <div className="text-center text-sm text-gray-500">{clarification.value.toFixed(2)} ct/kWh</div>
             </div>
@@ -67,4 +77,14 @@ const ZoneVisual: React.FC<{ dataClarification: any }> = ({ dataClarification })
     );
 };
 
-export default ZoneVisual;
+export const ZoneVisualSkeleton: React.FC = () => {
+    return (
+        <div className="flex justify-center items-center flex-wrap">
+            {[...Array(24)].map((_, index) => (
+                <div key={index} className="p-4 bg-gray-200 text-slate-400 text-center mx-3 my-2 shadow-lg rounded-lg border border-gray-200 hover:border-gray-400 transition-all duration-300 ease-in-out cursor-pointer animate-pulse">
+                    {index.toString().padStart(2, '0')}:00
+                </div>
+            ))}
+        </div>
+    );
+}
