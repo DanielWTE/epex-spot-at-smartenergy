@@ -22,29 +22,28 @@ interface CombinedData {
 }
 
 export async function GET(req: NextRequest) {
+  const timeframe = req.nextUrl.searchParams.get('timeframe');
+  if (!timeframe) {
+    return NextResponse.json({ message: 'Please provide a timeframe' }, { status: 400 });
+  }
+
+  const selectedTimeframe = timeframes.find((tf) => tf.value === timeframe);
+  if (!selectedTimeframe) {
+    return NextResponse.json({ message: 'Invalid timeframe' }, { status: 400 });
+  }
+
+  const rateLimit = new Ratelimit({
+    redis: kv,
+    limiter: Ratelimit.slidingWindow(100, '1 m'),
+  })
+
+  const { success } = await rateLimit.limit(req.headers.get('x-real-ip') as string || req.headers.get('x-forwarded-for') as string || 'guest');
+
+  if (!success) {
+    return NextResponse.json({ message: 'Rate limit exceeded' }, { status: 429 });
+  }
+
   try {
-    const timeframe = req.nextUrl.searchParams.get('timeframe');
-
-    if (!timeframe) {
-      return NextResponse.json({ message: 'Please provide a timeframe' }, { status: 400 });
-    }
-
-    const selectedTimeframe = timeframes.find((tf) => tf.value === timeframe);
-    if (!selectedTimeframe) {
-      return NextResponse.json({ message: 'Invalid timeframe' }, { status: 400 });
-    }
-
-    const rateLimit = new Ratelimit({
-        redis: kv,
-        limiter: Ratelimit.slidingWindow(100, '1 m'),
-    })
-
-    const { success } = await rateLimit.limit(req.headers.get('x-real-ip') as string || req.headers.get('x-forwarded-for') as string || 'guest');
-
-    if (!success) {
-      return NextResponse.json({ message: 'Rate limit exceeded' }, { status: 429 });
-    }
-
     await connectDB();
 
     const startDate = calculateStartDate(selectedTimeframe.value);

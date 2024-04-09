@@ -8,19 +8,18 @@ import { convertUTCtoGMT2, formatFetchedData, toLocalTimeISOString } from '@/uti
 import { calculateBestTimes } from '@/utils/calculate';
 
 export async function GET(req: NextRequest) {
+  const rateLimit = new Ratelimit({
+    redis: kv,
+    limiter: Ratelimit.slidingWindow(10, '1 m'),
+  })
+
+  const { success } = await rateLimit.limit(req.headers.get('x-real-ip') as string || req.headers.get('x-forwarded-for') as string || 'guest');
+
+  if (!success) {
+    return NextResponse.json({ message: 'Rate limit exceeded' }, { status: 429 });
+  }
+  
   try {
-
-    const rateLimit = new Ratelimit({
-        redis: kv,
-        limiter: Ratelimit.slidingWindow(10, '1 m'),
-    })
-
-    const { success } = await rateLimit.limit(req.headers.get('x-real-ip') as string || req.headers.get('x-forwarded-for') as string || 'guest');
-
-    if (!success) {
-      return NextResponse.json({ message: 'Rate limit exceeded' }, { status: 429 });
-    }
-
     const request = await fetch(process.env.SMART_ENERGY_EPEX_SPOT_AT_ENDPOINT_URL as string, {
       method: 'GET',
       headers: {
